@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.swell.store/setting.json",
+  "label": "Algolia",
+  "description": "Improve search functionalities by indexing product data with Algolia",
+  "fields": [
+    {
+      "id": "api_application_id",
+      "label": "Application ID",
+      "type": "short_text",
+      "description": "Found in Algolia → Settings → API Keys",
+      "required": true
+    },
+    {
+      "id": "api_admin_key",
+      "label": "Admin API Key",
+      "type": "short_text",
+      "description": "Found in Algolia → Settings → API Keys. Used server-side only to write to your index.",
+      "required": true
+    },
+    {
+      "id": "index_name",
+      "label": "Index Name",
+      "type": "short_text",
+      "description": "Algolia index that receives product records",
+      "default": "products"
+    },
+    {
+      "id": "enabled",
+      "label": "Sync product changes",
+      "type": "boolean",
+      "ui": "toggle",
+      "description": "Send product create, update and delete events to Algolia",
+      "default": true
+    }
+  ]
+}

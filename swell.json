@@ -1,0 +1,11 @@
+{
+	"description": "Improve search functionalities by indexing product data with Algolia",
+	"id": "algolia",
+	"name": "Algolia",
+	"type": "integration",
+	"version": "1.0.0",
+	"permissions": [],
+	"frontend": {
+		"hosting": "managed"
+	}
+}

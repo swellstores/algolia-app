@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.swell.store/content.json",
+  "collection": "syncs",
+  "description": "Sidebar entry that opens the app frontend to sync products to Algolia",
+  "fields": [],
+  "label": "Algolia sync",
+  "views": [
+    {
+      "id": "list",
+      "nav": {
+        "parent": "products",
+        "label": "Algolia sync",
+        "link": "frontend:///"
+      },
+      "fields": [],
+      "tabs": []
+    }
+  ]
+}

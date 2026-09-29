@@ -1,0 +1,3 @@
+- **App ID:** algolia
+- **Project:** Swell integration app. Port of the legacy Algolia integration (swell-admin `server/lib/algolia.js`, `server/api/integration/algolia.js`; schema-api-server `integrations/algolia.js`). Indexes product data in Algolia via product events and paginated full-sync jobs (`apps/algolia/syncs`).
+- **Tools:** Swell skills, Swell CLI, and senior agents for troubleshooting. Consult appropriate skill to ensure competent actions.
