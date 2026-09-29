@@ -5,6 +5,11 @@ type Status = 'idle' | 'running' | 'stopped' | 'failed' | 'complete';
 
 type Progress = { page: number; processed: number; synced: number; total: number };
 type Scope = 'all' | 'since';
+type SyncOptions = { createdAfter?: string; limit: number };
+
+// must match PAGE_SIZES in functions/lib/algolia.ts; the Worker rejects other values
+const PAGE_SIZES = [10, 100, 200, 500, 1000];
+const DEFAULT_PAGE_SIZE = 100;
 
 const emptyProgress: Progress = { page: 0, processed: 0, synced: 0, total: 0 };
 
@@ -21,11 +26,11 @@ function startOfDay(date: string) {
   return new Date(`${date}T00:00:00`).toISOString();
 }
 
-async function syncPage(page: number, createdAfter?: string): Promise<SyncPage> {
+async function syncPage(page: number, { createdAfter, limit }: SyncOptions): Promise<SyncPage> {
   const response = await fetch('/app-api/admin/sync', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(createdAfter ? { page, created_after: createdAfter } : { page }),
+    body: JSON.stringify(createdAfter ? { page, limit, created_after: createdAfter } : { page, limit }),
   });
   const text = await response.text();
   let result: Partial<SyncPage> & { error?: string; details?: unknown } = {};
@@ -47,11 +52,13 @@ export default function ProductSync() {
   const [stopping, setStopping] = useState(false);
   const [scope, setScope] = useState<Scope>('all');
   const [sinceDate, setSinceDate] = useState('');
-  const [activeFilter, setActiveFilter] = useState<{ createdAfter?: string; label: string }>({ label: 'all products' });
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  // options of the current sync, kept for resume even if the form changes (page numbers depend on the size)
+  const [activeSync, setActiveSync] = useState<SyncOptions & { label: string }>({ limit: DEFAULT_PAGE_SIZE, label: 'all products' });
   const stopRequested = useRef(false);
 
   // Sync pages of products one after another, starting from `fromPage`.
-  async function run(fromPage: number, initial: Progress, createdAfter?: string) {
+  async function run(fromPage: number, initial: Progress, options: SyncOptions) {
     stopRequested.current = false;
     setStopping(false);
     setStatus('running');
@@ -61,7 +68,7 @@ export default function ProductSync() {
     let page = fromPage;
     try {
       for (;;) {
-        const result = await syncPage(page, createdAfter);
+        const result = await syncPage(page, options);
         current = {
           page: result.page,
           processed: Math.min(result.count, (result.page - 1) * result.limit + result.synced),
@@ -81,14 +88,14 @@ export default function ProductSync() {
   }
 
   const start = () => {
-    const filter = scope === 'since' && sinceDate
-      ? { createdAfter: startOfDay(sinceDate), label: `products created on or after ${sinceDate}` }
-      : { label: 'all products' };
-    setActiveFilter(filter);
+    const options = scope === 'since' && sinceDate
+      ? { createdAfter: startOfDay(sinceDate), limit: pageSize, label: `products created on or after ${sinceDate}` }
+      : { limit: pageSize, label: 'all products' };
+    setActiveSync(options);
     setProgress(emptyProgress);
-    void run(1, emptyProgress, filter.createdAfter);
+    void run(1, emptyProgress, options);
   };
-  const resume = () => void run(progress.page + 1, progress, activeFilter.createdAfter);
+  const resume = () => void run(progress.page + 1, progress, activeSync);
   const stop = () => { stopRequested.current = true; setStopping(true); };
 
   const running = status === 'running';
@@ -115,6 +122,12 @@ export default function ProductSync() {
           onChange={(event) => { setSinceDate(event.target.value); setScope('since'); }}
         />
       </label>
+      <label>
+        Page size
+        <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+          {PAGE_SIZES.map((size) => <option key={size} value={size}>{size} products</option>)}
+        </select>
+      </label>
     </fieldset>
 
     <div className="sync-actions">
@@ -137,7 +150,7 @@ export default function ProductSync() {
         <span style={{ width: `${percent}%` }} />
       </div>
       <p role="status">
-        {statusLabel(status)} · {activeFilter.label} · {progress.processed} of {progress.total} products processed ({percent}%)
+        {statusLabel(status)} · {activeSync.label} · {progress.processed} of {progress.total} products processed ({percent}%)
         {running && progress.page > 0 && <> · page {progress.page}</>}
         {' '}· {progress.synced} sent to Algolia
       </p>

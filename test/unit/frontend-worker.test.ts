@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { adminSyncPage, publicContext } from "../../frontend/worker/swell-server";
-import { PAGE_LIMIT } from "../../functions/lib/algolia";
+import { DEFAULT_PAGE_SIZE } from "../../functions/lib/algolia";
 
 // The app frontend Worker endpoint that runs the sync page by page for staff.
 
@@ -130,6 +130,15 @@ describe("adminSyncPage request checks", () => {
     },
   );
 
+  it.each([50, 1001, "all"])("rejects page size %j before contacting the platform", async (limit) => {
+    noPlatformCalls();
+
+    const result = await adminSyncPage(request("_swell_admin_session=fixture", { body: { page: 1, limit } }));
+
+    expect(result.status).toBe(400);
+    expect(((await result.json()) as any).error).toBe("Invalid page size, use one of 10, 100, 200, 500, 1000");
+  });
+
   it("rejects an invalid date before contacting the platform", async () => {
     noPlatformCalls();
 
@@ -173,7 +182,7 @@ describe("adminSyncPage sync", () => {
 
     const result = await adminSyncPage(request("_swell_admin_session=fixture"));
 
-    expect(await result.json()).toEqual({ page: 1, limit: PAGE_LIMIT, count: 2, synced: 2, done: true });
+    expect(await result.json()).toEqual({ page: 1, limit: DEFAULT_PAGE_SIZE, count: 2, synced: 2, done: true });
     expect(result.headers.get("Cache-Control")).toBe("private, no-store");
     expect(calls[0]).toBe("GET example.swell.store/admin/api/session");
     expect(calls).toContain("GET api.example.invalid/settings/algolia");
@@ -186,17 +195,17 @@ describe("adminSyncPage sync", () => {
     const calls = mockPlatform({
       "GET /products": (url) => {
         productsUrl = url;
-        return Response.json({ count: PAGE_LIMIT + 1, results: [{ id: "p101" }] });
+        return Response.json({ count: DEFAULT_PAGE_SIZE + 1, results: [{ id: "p101" }] });
       },
     });
     vi.spyOn(console, "log").mockImplementation(() => {});
 
     const result = await adminSyncPage(request("_swell_admin_session=fixture", { body: { page: 2 } }));
 
-    expect(await result.json()).toEqual({ page: 2, limit: PAGE_LIMIT, count: PAGE_LIMIT + 1, synced: 1, done: true });
+    expect(await result.json()).toEqual({ page: 2, limit: DEFAULT_PAGE_SIZE, count: DEFAULT_PAGE_SIZE + 1, synced: 1, done: true });
     expect(calls).not.toContain("GET appid.algolia.net/1/keys");
     expect(productsUrl?.searchParams.get("page")).toBe("2");
-    expect(productsUrl?.searchParams.get("limit")).toBe(String(PAGE_LIMIT));
+    expect(productsUrl?.searchParams.get("limit")).toBe(String(DEFAULT_PAGE_SIZE));
     expect(productsUrl?.searchParams.get("active")).toBe("true");
   });
 
@@ -214,9 +223,25 @@ describe("adminSyncPage sync", () => {
       request("_swell_admin_session=fixture", { body: { page: 1, created_after: "2026-09-01T00:00:00+02:00" } }),
     );
 
-    expect(await result.json()).toEqual({ page: 1, limit: PAGE_LIMIT, count: 1, synced: 1, done: true });
+    expect(await result.json()).toEqual({ page: 1, limit: DEFAULT_PAGE_SIZE, count: 1, synced: 1, done: true });
     expect(productsUrl?.searchParams.get("date_created[$gte]")).toBe("2026-08-31T22:00:00.000Z");
     expect(productsUrl?.searchParams.get("sort")).toBe("date_created asc");
+  });
+
+  it("uses the requested page size", async () => {
+    let productsUrl: URL | undefined;
+    mockPlatform({
+      "GET /products": (url) => {
+        productsUrl = url;
+        return Response.json({ count: 1, results: [{ id: "p1" }] });
+      },
+    });
+    vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const result = await adminSyncPage(request("_swell_admin_session=fixture", { body: { page: 1, limit: 1000 } }));
+
+    expect(await result.json()).toEqual({ page: 1, limit: 1000, count: 1, synced: 1, done: true });
+    expect(productsUrl?.searchParams.get("limit")).toBe("1000");
   });
 
   it("syncs all products without a date filter", async () => {
@@ -257,7 +282,7 @@ describe("adminSyncPage errors", () => {
 
     expect(result.status).toBe(502);
     expect(body.error).toBe("Algolia 400: Record is too big");
-    expect(body.details).toEqual({ step: "algolia", page: 1, status: 400 });
+    expect(body.details).toEqual({ step: "algolia", page: 1, status: 400, limit: DEFAULT_PAGE_SIZE });
   });
 
   it("reports Swell API failures with step, status and body without leaking credentials", async () => {

@@ -15,3 +15,4 @@ button:disabled { cursor: default; opacity: 0.6; }
 .sync-scope legend { font-weight: 600; margin-bottom: 0.5rem; }
 .sync-scope label { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .sync-scope input[type="date"] { font: inherit; padding: 0.25rem 0.5rem; }
+.sync-scope select { font: inherit; padding: 0.25rem 0.5rem; }

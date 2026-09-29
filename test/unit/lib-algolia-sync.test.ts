@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PAGE_LIMIT, SyncError, syncProductsPage } from "../../functions/lib/algolia";
+import { DEFAULT_PAGE_SIZE, PAGE_SIZES, SyncError, syncProductsPage } from "../../functions/lib/algolia";
 import { algoliaSettings, echoBatch, mockFetch } from "../helpers/algolia-fetch";
 
 afterEach(() => {
@@ -35,10 +35,10 @@ describe("syncProductsPage", () => {
 
     const result = await syncProductsPage(swell, 1);
 
-    expect(result).toEqual({ page: 1, limit: PAGE_LIMIT, count: 2, synced: 2, done: true });
+    expect(result).toEqual({ page: 1, limit: DEFAULT_PAGE_SIZE, count: 2, synced: 2, done: true });
     expect(swell.get).toHaveBeenCalledWith(
       "/products",
-      expect.objectContaining({ active: true, limit: PAGE_LIMIT, page: 1, sort: "date_created asc" }),
+      expect.objectContaining({ active: true, limit: DEFAULT_PAGE_SIZE, page: 1, sort: "date_created asc" }),
     );
     expect(calls.map((call) => `${call.method} ${call.url.pathname}`)).toEqual([
       "GET /1/keys",
@@ -48,13 +48,40 @@ describe("syncProductsPage", () => {
   });
 
   it("is not done while a page is full, and checks keys only on the first page", async () => {
-    const swell = mockSwell({ results: products(PAGE_LIMIT, PAGE_LIMIT), count: PAGE_LIMIT * 3 });
+    const swell = mockSwell({ results: products(DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE), count: DEFAULT_PAGE_SIZE * 3 });
     const { calls } = mockFetch(algoliaRoutes);
 
     const result = await syncProductsPage(swell, 2);
 
-    expect(result).toEqual({ page: 2, limit: PAGE_LIMIT, count: PAGE_LIMIT * 3, synced: PAGE_LIMIT, done: false });
+    expect(result).toEqual({ page: 2, limit: DEFAULT_PAGE_SIZE, count: DEFAULT_PAGE_SIZE * 3, synced: DEFAULT_PAGE_SIZE, done: false });
     expect(calls.some((call) => call.url.pathname === "/1/keys")).toBe(false);
+  });
+
+  it.each(PAGE_SIZES)("uses a page size of %i", async (limit) => {
+    const swell = mockSwell({ results: products(limit), count: limit * 2 });
+    mockFetch(algoliaRoutes);
+
+    const result = await syncProductsPage(swell, 2, { limit });
+
+    expect(result).toEqual({ page: 2, limit, count: limit * 2, synced: limit, done: false });
+    expect(swell.get).toHaveBeenCalledWith("/products", expect.objectContaining({ limit, page: 2 }));
+  });
+
+  it("is done when a page has fewer products than the page size", async () => {
+    const swell = mockSwell({ results: products(9), count: 19 });
+    mockFetch(algoliaRoutes);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const result = await syncProductsPage(swell, 2, { limit: 10 });
+
+    expect(result).toMatchObject({ limit: 10, synced: 9, done: true });
+  });
+
+  it.each([0, 50, 1001, 5000])("rejects page size %i", async (limit) => {
+    const error = await syncProductsPage(mockSwell(), 1, { limit }).catch((err) => err);
+
+    expect(error).toBeInstanceOf(SyncError);
+    expect(error).toMatchObject({ status: 400, message: "Invalid page size, use one of 10, 100, 200, 500, 1000" });
   });
 
   it("filters by creation date", async () => {

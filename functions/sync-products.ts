@@ -1,4 +1,4 @@
-import { AlgoliaError, SyncError, parseCreatedAfter, syncProductsPage } from './lib/algolia';
+import { AlgoliaError, SyncError, parseCreatedAfter, parsePageSize, syncProductsPage } from './lib/algolia';
 
 // Each call pushes one page of products. The app frontend drives the full sync
 // page by page, so a single call stays within the function timeout.
@@ -15,7 +15,8 @@ export async function post(req: SwellRequest) {
 
   try {
     const createdAfter = parseCreatedAfter(req.data?.created_after);
-    return await syncProductsPage(req.swell, page, { createdAfter });
+    const limit = parsePageSize(req.data?.limit);
+    return await syncProductsPage(req.swell, page, { createdAfter, limit });
   } catch (err: any) {
     if (err instanceof SyncError) {
       throw new SwellError(err.message, { status: err.status });

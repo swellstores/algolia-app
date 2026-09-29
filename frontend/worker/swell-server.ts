@@ -1,4 +1,4 @@
-import { AlgoliaError, SyncError, parseCreatedAfter, syncProductsPage, type SwellClient } from '../../functions/lib/algolia';
+import { AlgoliaError, SyncError, parseCreatedAfter, parsePageSize, syncProductsPage, type SwellClient } from '../../functions/lib/algolia';
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -131,10 +131,12 @@ export async function adminSyncPage(request: Request) {
 
   let page: unknown;
   let createdAfter: string | undefined;
+  let limit: number;
   try {
-    const body = await request.json() as { page?: unknown; created_after?: unknown };
+    const body = await request.json() as { page?: unknown; created_after?: unknown; limit?: unknown };
     page = body.page;
     createdAfter = parseCreatedAfter(body.created_after);
+    limit = parsePageSize(body.limit);
   } catch (err) {
     return json({ error: err instanceof SyncError ? err.message : 'Invalid request body' }, 400);
   }
@@ -145,7 +147,7 @@ export async function adminSyncPage(request: Request) {
   const swell = backendClient(context);
 
   try {
-    const result = await syncProductsPage(swell, page as number, { createdAfter });
+    const result = await syncProductsPage(swell, page as number, { createdAfter, limit });
     return json({
       page: result.page, limit: result.limit, count: result.count,
       synced: result.synced, done: result.done,
@@ -163,6 +165,7 @@ export async function adminSyncPage(request: Request) {
     } else {
       details = { step: 'sync', page, exception: err instanceof Error ? `${err.name}: ${err.message}` : String(err) };
     }
+    details.limit = limit;
     if (createdAfter) details.created_after = createdAfter;
     const message = swell.redact(err instanceof Error ? err.message : String(err)) || 'Unable to sync products';
     details = JSON.parse(swell.redact(JSON.stringify(details)));

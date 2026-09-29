@@ -29,8 +29,9 @@ The `product-events` function runs on every `product.created`, `product.updated`
 ![Algolia product sync](assets/screenshots/product-sync.png)
 
 - **All products**, or **Products created on or after** a date. The date is the start of that day in the merchant's time zone, compared with `date_created`.
-- Products are pushed **100 at a time**, oldest first, and the page shows a progress bar, the count processed and the count sent to Algolia.
-- **Stop** finishes the page in flight and stops. **Resume from page N** continues from where a stopped or failed sync left off, with the same filter.
+- **Page size**: 10, 100 (default), 200, 500 or 1000 products per request. Larger pages mean fewer requests; smaller pages give finer progress and smaller requests if records are large. 1000 is the Swell API maximum.
+- Products are pushed page by page, oldest first, and the page shows a progress bar, the count processed and the count sent to Algolia.
+- **Stop** finishes the page in flight and stops. **Resume from page N** continues from where a stopped or failed sync left off, with the same filter and page size (the form is locked while a sync runs).
 - On failure, the page shows the error message and an **Error details** block (the failing step, HTTP status and upstream response) to help diagnose settings, Swell API or Algolia problems.
 - The first page checks that the Algolia credentials can access the index before pushing anything.
 
@@ -105,7 +106,7 @@ assets/screenshots/        Screenshots listed in swell.json "images"
 
 ### How the manual sync works
 
-1. The sync page calls `POST /app-api/admin/sync` with `{ page, created_after? }` for page 1, 2, 3… until the response says `done`.
+1. The sync page calls `POST /app-api/admin/sync` with `{ page, limit, created_after? }` for page 1, 2, 3… until the response says `done`. `limit` must be one of 10, 100, 200, 500, 1000 (default 100).
 2. The Worker (`frontend/worker/swell-server.ts`) accepts only same-origin JSON requests (CSRF protection) and validates the `_swell_admin_session` cookie against Swell, requiring a staff session of the same store.
 3. It then runs `syncProductsPage` from `functions/lib/algolia.ts` with the Backend API credentials Swell passes to the Worker in request headers. These are the same credentials app functions get.
 4. It returns only `{ page, limit, count, synced, done }`, or `{ error, details }` with the access token redacted.
@@ -127,7 +128,7 @@ Run from the app root unless noted.
 | `cd frontend && npm run build` | Builds the frontend locally (push builds it anyway). |
 | `swell app push` | Deploys everything to the store's test environment, including a fresh frontend build. |
 | `swell inspect content app.algolia.syncs` | Shows the deployed sidebar entry. |
-| `swell api post /functions/algolia/sync-products --body '{"page":1}'` | Syncs one page from the CLI. Add `"created_after":"2026-01-01T00:00:00Z"` to filter. **Writes to Algolia.** |
+| `swell api post /functions/algolia/sync-products --body '{"page":1}'` | Syncs one page from the CLI. Add `"limit":500` for the page size and `"created_after":"2026-01-01T00:00:00Z"` to filter. **Writes to Algolia.** |
 
 ### Tests
 
@@ -145,4 +146,4 @@ Run from the app root unless noted.
 
 - Keep `frontend/dist/` and `frontend/.wrangler/` out of git. Builds write local absolute paths into them. `swell app push` ignores them and always rebuilds the frontend.
 - The managed frontend package is limited to 8 MiB; the app currently uses about 0.3 MB.
-- `PAGE_LIMIT` in `functions/lib/algolia.ts` sets how many products each sync page pushes.
+- `PAGE_SIZES` and `DEFAULT_PAGE_SIZE` in `functions/lib/algolia.ts` set the allowed page sizes; keep `PAGE_SIZES` in `frontend/src/ProductSync.tsx` in sync with them.

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { config, post } from "../../functions/sync-products";
-import { PAGE_LIMIT } from "../../functions/lib/algolia";
+import { DEFAULT_PAGE_SIZE } from "../../functions/lib/algolia";
 import { createMockRequest } from "../helpers/mock-request";
 import { algoliaSettings, echoBatch, mockFetch } from "../helpers/algolia-fetch";
 
@@ -34,11 +34,29 @@ describe("sync-products function", () => {
       createMockRequest({ data: { page: 2, created_after: "2026-09-01T00:00:00.000Z" }, swell }),
     );
 
-    expect(result).toEqual({ page: 2, limit: PAGE_LIMIT, count: 1, synced: 1, done: true });
+    expect(result).toEqual({ page: 2, limit: DEFAULT_PAGE_SIZE, count: 1, synced: 1, done: true });
     expect(swell.get).toHaveBeenCalledWith(
       "/products",
       expect.objectContaining({ page: 2, date_created: { $gte: "2026-09-01T00:00:00.000Z" } }),
     );
+  });
+
+  it("passes the page size through", async () => {
+    const swell = swellMock();
+    mockFetch({ "POST algolia/1/indexes/products/batch": echoBatch });
+    vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const result = await post(createMockRequest({ data: { page: 2, limit: 500 }, swell }));
+
+    expect(result.limit).toBe(500);
+    expect(swell.get).toHaveBeenCalledWith("/products", expect.objectContaining({ limit: 500 }));
+  });
+
+  it("returns 400 for an unsupported page size", async () => {
+    const error = await post(createMockRequest({ data: { page: 1, limit: 2000 }, swell: swellMock() })).catch((err) => err);
+
+    expect(error.status).toBe(400);
+    expect(error.message).toBe("Invalid page size, use one of 10, 100, 200, 500, 1000");
   });
 
   it("defaults to the first page", async () => {

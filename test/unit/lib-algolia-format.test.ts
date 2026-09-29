@@ -6,6 +6,7 @@ import {
   getCategoryLookup,
   getLanguages,
   parseCreatedAfter,
+  parsePageSize,
   productQuery,
 } from "../../functions/lib/algolia";
 
@@ -164,5 +165,19 @@ describe("parseCreatedAfter", () => {
 
   it.each(["yesterday", 42, {}])("rejects %j", (value) => {
     expect(() => parseCreatedAfter(value)).toThrow(SyncError);
+  });
+});
+
+describe("parsePageSize", () => {
+  it.each([undefined, null, ""])("defaults %j to 100", (value) => {
+    expect(parsePageSize(value)).toBe(100);
+  });
+
+  it.each([10, 100, 200, 500, 1000, "500"])("accepts %j", (value) => {
+    expect(parsePageSize(value)).toBe(Number(value));
+  });
+
+  it.each([0, 1, 99, 1001, "all", 10.5])("rejects %j", (value) => {
+    expect(() => parsePageSize(value)).toThrow(SyncError);
   });
 });

@@ -1,7 +1,9 @@
 // Uses the Algolia REST API over fetch because functions run on Cloudflare Workers.
 
 export const DEFAULT_INDEX = 'products';
-export const PAGE_LIMIT = 100;
+// products per sync page: the merchant picks one of these; 1000 is the Swell API maximum
+export const PAGE_SIZES = [10, 100, 200, 500, 1000] as const;
+export const DEFAULT_PAGE_SIZE = 100;
 
 // product fields
 export const PRODUCT_QUERY = {
@@ -467,6 +469,20 @@ export interface SyncPageResult {
 export interface SyncOptions {
   // ISO date; only products with date_created >= this date are synced
   createdAfter?: string;
+  // products per page, one of PAGE_SIZES
+  limit?: number;
+}
+
+// Validate an optional page size, defaulting to DEFAULT_PAGE_SIZE
+export function parsePageSize(value: unknown): number {
+  if (value === undefined || value === null || value === '') {
+    return DEFAULT_PAGE_SIZE;
+  }
+  const size = Number(value);
+  if (!(PAGE_SIZES as readonly number[]).includes(size)) {
+    throw new SyncError(`Invalid page size, use one of ${PAGE_SIZES.join(', ')}`, 400);
+  }
+  return size;
 }
 
 // Normalize an optional date filter to ISO, rejecting anything Date can't parse
@@ -485,11 +501,12 @@ export function parseCreatedAfter(value: unknown): string | undefined {
 export async function syncProductsPage(
   swell: SwellClient,
   page: number,
-  { createdAfter }: SyncOptions = {},
+  { createdAfter, limit = DEFAULT_PAGE_SIZE }: SyncOptions = {},
 ): Promise<SyncPageResult> {
   if (!Number.isInteger(page) || page < 1) {
     throw new SyncError('Invalid page', 400);
   }
+  limit = parsePageSize(limit);
 
   const { credentials } = await getAlgoliaSettings(swell);
 
@@ -509,7 +526,7 @@ export async function syncProductsPage(
     ...(createdAfter ? { date_created: { $gte: createdAfter } } : {}),
     // stable order so pages don't shift while the sync walks them
     sort: 'date_created asc',
-    limit: PAGE_LIMIT,
+    limit,
     page,
   });
 
@@ -518,7 +535,7 @@ export async function syncProductsPage(
     credentials,
     results.map((product) => formatProduct(product, categoryLookup)),
   );
-  const done = results.length < PAGE_LIMIT;
+  const done = results.length < limit;
 
   if (done) {
     console.log(`Algolia: sync finished on page ${page}`);
@@ -526,7 +543,7 @@ export async function syncProductsPage(
 
   return {
     page,
-    limit: PAGE_LIMIT,
+    limit,
     count: products?.count || 0,
     synced: objectIDs.length,
     done,

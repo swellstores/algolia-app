@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  PAGE_LIMIT,
+  DEFAULT_PAGE_SIZE,
   getAlgoliaSettings,
   getCategoryLookup,
   getLanguages,
@@ -38,13 +38,13 @@ describe("store data used by the sync (read-only)", () => {
     const result = await swell.get("/products", {
       ...productQuery(languages),
       sort: "date_created asc",
-      limit: PAGE_LIMIT,
+      limit: DEFAULT_PAGE_SIZE,
       page: 1,
       fields: "date_created,active",
     });
 
     const dates = result.results.map((product: any) => product.date_created);
-    expect(result.results.length).toBeLessThanOrEqual(PAGE_LIMIT);
+    expect(result.results.length).toBeLessThanOrEqual(DEFAULT_PAGE_SIZE);
     expect(result.results.every((product: any) => product.active !== false)).toBe(true);
     expect([...dates].sort()).toEqual(dates);
   });
