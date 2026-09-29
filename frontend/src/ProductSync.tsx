@@ -50,7 +50,7 @@ export default function ProductSync() {
   const [activeFilter, setActiveFilter] = useState<{ createdAfter?: string; label: string }>({ label: 'all products' });
   const stopRequested = useRef(false);
 
-  // Sync pages of 100 products one after another, starting from `fromPage`.
+  // Sync pages of products one after another, starting from `fromPage`.
   async function run(fromPage: number, initial: Progress, createdAfter?: string) {
     stopRequested.current = false;
     setStopping(false);
@@ -138,7 +138,7 @@ export default function ProductSync() {
       </div>
       <p role="status">
         {statusLabel(status)} · {activeFilter.label} · {progress.processed} of {progress.total} products processed ({percent}%)
-        {progress.page > 0 && <> · page {progress.page}</>}
+        {running && progress.page > 0 && <> · page {progress.page}</>}
         {' '}· {progress.synced} sent to Algolia
       </p>
       {error && <div className="sync-error" role="alert">

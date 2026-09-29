@@ -114,10 +114,10 @@ test('validates session, syncs one page and returns only progress fields', async
 test('checks Algolia keys only on the first page and requests the given page', async () => {
   let productsUrl;
   const calls = mockPlatform({
-    'GET /products': (url) => { productsUrl = new URL(String(url)); return Response.json({ count: 102, results: [{ id: 'p101' }] }); },
+    'GET /products': (url) => { productsUrl = new URL(String(url)); return Response.json({ count: 101, results: [{ id: 'p101' }] }); },
   });
   const result = await adminSyncPage(request('_swell_admin_session=fixture', { body: { page: 2 } }));
-  assert.deepEqual(await result.json(), { page: 2, limit: 100, count: 102, synced: 1, done: true });
+  assert.deepEqual(await result.json(), { page: 2, limit: 100, count: 101, synced: 1, done: true });
   assert(!calls.includes('GET appid.algolia.net/1/keys'));
   assert.equal(productsUrl.searchParams.get('page'), '2');
   assert.equal(productsUrl.searchParams.get('limit'), '100');
