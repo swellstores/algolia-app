@@ -1,4 +1,4 @@
-import { AlgoliaError, SyncError, parseCreatedAfter, syncProductsPage, type SwellClient } from '../../functions/lib/algolia.ts';
+import { AlgoliaError, SyncError, parseCreatedAfter, syncProductsPage, type SwellClient } from '../../functions/lib/algolia';
 
 export function json(body: unknown, status = 200) {
   return Response.json(body, {

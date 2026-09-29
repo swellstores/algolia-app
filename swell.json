@@ -7,5 +7,13 @@
 	"permissions": [],
 	"frontend": {
 		"hosting": "managed"
-	}
+	},
+	"images": [
+		{
+			"id": "product-sync",
+			"title": "Sync products to Algolia",
+			"description": "Push all active products, or only those created on or after a date, to your Algolia index and follow the progress.",
+			"image_src": "assets/screenshots/product-sync.png"
+		}
+	]
 }
