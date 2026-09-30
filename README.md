@@ -39,7 +39,7 @@ Algolia for Swell copies your products into [Algolia](https://www.algolia.com), 
 
 **Where it shows up.** Dashboard sidebar: **Products → Algolia sync**. The page opens inside the dashboard.
 
-![Sync options](assets/screenshots/02-sync-options.png)
+![Algolia sync in the Products menu](assets/screenshots/02-sidebar-entry.png)
 
 ![Stopped sync with resume](assets/screenshots/03-sync-stopped.png)
 

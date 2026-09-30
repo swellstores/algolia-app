@@ -18,10 +18,10 @@
 			"image_src": "assets/screenshots/01-settings.png"
 		},
 		{
-			"id": "sync-options",
-			"title": "Choose what to sync",
-			"description": "Sync all active products or only those created on or after a date, in pages of 10 to 1000 products.",
-			"image_src": "assets/screenshots/02-sync-options.png"
+			"id": "sync-page",
+			"title": "Sync products from the dashboard",
+			"description": "Open Products → Algolia sync to push all products, or only those created after a date, to Algolia.",
+			"image_src": "assets/screenshots/02-sidebar-entry.png"
 		},
 		{
 			"id": "sync-stopped",
