@@ -26,7 +26,9 @@ The `product-events` function runs on every `product.created`, `product.updated`
 
 **Products → Algolia sync** in the dashboard opens the app page:
 
-![Algolia product sync](assets/screenshots/product-sync.png)
+![Sync options](assets/screenshots/02-sync-options.png)
+
+![Stopped sync with resume](assets/screenshots/03-sync-stopped.png)
 
 - **All products**, or **Products created on or after** a date. The date is the start of that day in the merchant's time zone, compared with `date_created`.
 - **Page size**: 10, 100 (default), 200, 500 or 1000 products per request. Larger pages mean fewer requests; smaller pages give finer progress and smaller requests if records are large. 1000 is the Swell API maximum.
@@ -50,6 +52,8 @@ Each product becomes one Algolia record:
 ## Settings
 
 Merchants set these under **Apps → Algolia → Settings**. Credentials and options live only in settings, never in code.
+
+![App settings](assets/screenshots/01-settings.png)
 
 | Setting | ID | Default | Description |
 |---|---|---|---|
@@ -86,6 +90,7 @@ Merchants set these under **Apps → Algolia → Settings**. Credentials and opt
 
 ```
 swell.json                 App manifest (id, frontend hosting, screenshots)
+DESCRIPTION.md             App description shown to merchants (marketplace listing)
 settings/algolia.json      Merchant settings (credentials, index, events toggle)
 functions/
   product-events.ts        Real-time updates on product events

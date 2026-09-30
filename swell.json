@@ -10,10 +10,28 @@
 	},
 	"images": [
 		{
-			"id": "product-sync",
-			"title": "Sync products to Algolia",
-			"description": "Push all active products, or only those created on or after a date, to your Algolia index and follow the progress.",
-			"image_src": "assets/screenshots/product-sync.png"
+			"id": "settings",
+			"title": "Connect your Algolia index",
+			"description": "Enter your Algolia Application ID, Admin API Key and index name, and turn automatic product updates on or off.",
+			"image_src": "assets/screenshots/01-settings.png"
+		},
+		{
+			"id": "sync-options",
+			"title": "Choose what to sync",
+			"description": "Sync all active products or only those created on or after a date, in pages of 10 to 1000 products.",
+			"image_src": "assets/screenshots/02-sync-options.png"
+		},
+		{
+			"id": "sync-stopped",
+			"title": "Stop and resume a sync",
+			"description": "Follow the progress of a sync, stop it at any time and resume from the next page.",
+			"image_src": "assets/screenshots/03-sync-stopped.png"
+		},
+		{
+			"id": "sync-complete",
+			"title": "Sync complete",
+			"description": "See how many products were processed and sent to Algolia when the sync finishes.",
+			"image_src": "assets/screenshots/04-sync-complete.png"
 		}
 	]
 }
