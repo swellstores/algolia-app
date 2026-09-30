@@ -1,5 +1,5 @@
 {
-	"description": "Improve search functionalities by indexing product data with Algolia",
+	"description": "Index your Swell products in Algolia for fast storefront search",
 	"id": "algolia",
 	"name": "Algolia",
 	"type": "integration",
@@ -14,28 +14,28 @@
 	},
 	"images": [
 		{
-			"id": "settings",
-			"title": "Connect your Algolia index",
-			"description": "Enter your Algolia Application ID, Admin API Key and index name, and turn automatic product updates on or off.",
-			"image_src": "assets/screenshots/01-settings.png"
+			"id": "catalog-sync",
+			"title": "Your catalog in Algolia",
+			"description": "Push every active product to your Algolia index from Products → Algolia sync and follow the progress.",
+			"image_src": "assets/images/1-catalog-sync.png"
 		},
 		{
-			"id": "sync-page",
-			"title": "Sync products from the dashboard",
-			"description": "Open Products → Algolia sync to push all products, or only those created after a date, to Algolia.",
-			"image_src": "assets/screenshots/02-sidebar-entry.png"
+			"id": "automatic-updates",
+			"title": "Product changes sync on their own",
+			"description": "Create, edit, deactivate or delete a product in Swell, and Algolia is updated within moments.",
+			"image_src": "assets/images/2-automatic-updates.png"
 		},
 		{
-			"id": "sync-stopped",
-			"title": "Stop and resume a sync",
-			"description": "Follow the progress of a sync, stop it at any time and resume from the next page.",
-			"image_src": "assets/screenshots/03-sync-stopped.png"
+			"id": "sync-options",
+			"title": "Sync everything or just what's new",
+			"description": "Sync all products or only those created since a date. Stop at any time and resume from the next page.",
+			"image_src": "assets/images/3-sync-options.png"
 		},
 		{
-			"id": "sync-complete",
-			"title": "Sync complete",
-			"description": "See how many products were processed and sent to Algolia when the sync finishes.",
-			"image_src": "assets/screenshots/04-sync-complete.png"
+			"id": "setup",
+			"title": "Connected in a few minutes",
+			"description": "Paste your Algolia Application ID and Admin API Key and choose the index. Automatic updates are on by default.",
+			"image_src": "assets/images/4-setup.png"
 		}
 	]
 }

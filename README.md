@@ -163,8 +163,10 @@ test/
   unit/                    Unit tests with mocked Swell and Algolia
   integration/             Read-only tests against your store's test environment
   helpers/                 Mock request, Swell client and fetch helpers
-assets/icon.png            App icon (placeholder)
-assets/screenshots/        Screenshots listed in swell.json "images"
+assets/icon.png            App icon (Algolia logo mark, 512×512)
+assets/image.png           Social card (1200×630)
+assets/images/             App Store listing images, listed in swell.json "images"
+assets/screenshots/        Dashboard screenshots used in this README
 ```
 
 ### Run

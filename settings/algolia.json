@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.swell.store/setting.json",
   "label": "Algolia",
-  "description": "Improve search functionalities by indexing product data with Algolia",
+  "description": "Copy the Application ID and Admin API Key from Algolia → Settings → API Keys.",
   "fields": [
     {
       "id": "api_application_id",

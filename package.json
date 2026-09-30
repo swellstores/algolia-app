@@ -1,5 +1,5 @@
 {
-  "description": "Improve search functionalities by indexing product data with Algolia",
+  "description": "Index your Swell products in Algolia for fast storefront search",
   "devDependencies": {
     "@swell/app-types": "^1.2.0",
     "typescript": "^5.9.3",
