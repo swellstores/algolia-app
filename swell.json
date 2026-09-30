@@ -4,6 +4,8 @@
 	"name": "Algolia",
 	"type": "integration",
 	"version": "1.0.0",
+	"support_email": "support@swell.is",
+	"integrations": ["algolia"],
 	"permissions": [],
 	"frontend": {
 		"hosting": "managed"
