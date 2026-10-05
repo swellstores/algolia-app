@@ -13,7 +13,7 @@
     {
       "id": "api_admin_key",
       "label": "Admin API Key",
-      "type": "short_text",
+      "type": "secret",
       "description": "Found in Algolia → Settings → API Keys. Used server-side only to write to your index.",
       "required": true
     },
