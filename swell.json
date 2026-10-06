@@ -3,7 +3,7 @@
 	"id": "algolia",
 	"name": "Algolia",
 	"type": "integration",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"support_email": "support@swell.is",
 	"documentation_url": "https://developers.swell.is/app-guides/algolia",
 	"price_external": true,
