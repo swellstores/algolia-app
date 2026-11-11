@@ -2,6 +2,15 @@
   "$schema": "https://json.swell.store/setting.json",
   "label": "Algolia",
   "description": "Copy the Application ID and Admin API Key from Algolia → Settings → API Keys.",
+  "actions": [
+    {
+      "id": "test_connection",
+      "label": "Test connection",
+      "function": "test-connection",
+      "loading_label": "Testing…",
+      "hint": "Checks the Application ID, Admin API Key and index"
+    }
+  ],
   "fields": [
     {
       "id": "api_application_id",

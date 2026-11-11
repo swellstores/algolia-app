@@ -153,6 +153,7 @@ settings/algolia.json      Merchant settings
 functions/
   product-events.ts        Automatic product updates (model events)
   sync-products.ts         Private route: sync one page (CLI and automation)
+  test-connection.ts       Settings action: checks the keys and whether the index exists
   lib/algolia.ts           Shared code: settings, Algolia REST client, record format, page sync
 models/syncs.json          Empty placeholder model behind the sidebar entry
 content/syncs.json         Sidebar entry Products → Algolia sync, opens the frontend

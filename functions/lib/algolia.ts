@@ -98,7 +98,7 @@ function algoliaHosts(appId: string): string[] {
   ];
 }
 
-async function algoliaRequest(
+export async function algoliaRequest(
   { appId, apiKey }: AlgoliaCredentials,
   method: string,
   path: string,
