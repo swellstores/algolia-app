@@ -54,7 +54,7 @@ export default function ProductSync() {
   const [sinceDate, setSinceDate] = useState('');
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   // options of the current sync, kept for resume even if the form changes (page numbers depend on the size)
-  const [activeSync, setActiveSync] = useState<SyncOptions & { label: string }>({ limit: DEFAULT_PAGE_SIZE, label: 'all products' });
+  const [activeSync, setActiveSync] = useState<SyncOptions & { label: string }>({ limit: DEFAULT_PAGE_SIZE, label: 'All products' });
   const stopRequested = useRef(false);
 
   // Sync pages of products one after another, starting from `fromPage`.
@@ -89,8 +89,8 @@ export default function ProductSync() {
 
   const start = () => {
     const options = scope === 'since' && sinceDate
-      ? { createdAfter: startOfDay(sinceDate), limit: pageSize, label: `products created on or after ${sinceDate}` }
-      : { limit: pageSize, label: 'all products' };
+      ? { createdAfter: startOfDay(sinceDate), limit: pageSize, label: `Products created on or after ${formatDate(sinceDate)}` }
+      : { limit: pageSize, label: 'All products' };
     setActiveSync(options);
     setProgress(emptyProgress);
     void run(1, emptyProgress, options);
@@ -104,65 +104,95 @@ export default function ProductSync() {
   const percent = status === 'complete' ? 100
     : progress.total ? Math.min(100, Math.round((progress.processed / progress.total) * 100)) : 0;
 
-  return <section className="sync">
-    <fieldset className="sync-scope" disabled={running}>
-      <legend>Products to sync</legend>
-      <label>
-        <input type="radio" name="scope" value="all" checked={scope === 'all'} onChange={() => setScope('all')} />
-        All products
-      </label>
-      <label>
-        <input type="radio" name="scope" value="since" checked={scope === 'since'} onChange={() => setScope('since')} />
-        Products created on or after
-        <input
-          type="date"
-          value={sinceDate}
-          max={new Date().toLocaleDateString('en-CA')}
-          aria-label="Created on or after"
-          onChange={(event) => { setSinceDate(event.target.value); setScope('since'); }}
-        />
-      </label>
-      <label>
-        Page size
-        <select value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
-          {PAGE_SIZES.map((size) => <option key={size} value={size}>{size} products</option>)}
-        </select>
-      </label>
-    </fieldset>
-
-    <div className="sync-actions">
-      <button type="button" className="primary" onClick={start} disabled={!canStart}>
-        {status === 'idle' ? 'Start sync' : 'Start new sync'}
-      </button>
-      {running && <button type="button" onClick={stop} disabled={stopping}>{stopping ? 'Stopping…' : 'Stop'}</button>}
-      {canResume && <button type="button" onClick={resume}>Resume from page {progress.page + 1}</button>}
-    </div>
-
-    {status !== 'idle' && <div className="sync-progress">
-      <div
-        className={`bar bar-${status}`}
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={percent}
-        aria-label="Sync progress"
-      >
-        <span style={{ width: `${percent}%` }} />
+  return <>
+    <section className="card">
+      <div className="card-head">
+        <h2 id="sync-scope-title">Products to sync</h2>
       </div>
-      <p role="status">
-        {statusLabel(status)} · {activeSync.label} · {progress.processed} of {progress.total} products processed ({percent}%)
-        {running && progress.page > 0 && <> · page {progress.page}</>}
-        {' '}· {progress.synced} sent to Algolia
-      </p>
-      {error && <div className="sync-error" role="alert">
-        <p>{error}</p>
-        {errorDetails != null && <details open>
-          <summary>Error details</summary>
-          <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
-        </details>}
-      </div>}
-    </div>}
-  </section>;
+      <div className="card-body">
+        <fieldset className="choices" aria-labelledby="sync-scope-title" disabled={running}>
+          <label className={scope === 'all' ? 'choice is-on' : 'choice'}>
+            <input type="radio" name="scope" value="all" checked={scope === 'all'} onChange={() => setScope('all')} />
+            <span className="choice-text"><strong>All products</strong><span>Every active product in the store.</span></span>
+          </label>
+          <label className={scope === 'since' ? 'choice is-on' : 'choice'}>
+            <input type="radio" name="scope" value="since" checked={scope === 'since'} onChange={() => setScope('since')} />
+            <span className="choice-text"><strong>Products created on or after</strong><span>From the start of that day, in your time zone.</span></span>
+            <input
+              type="date"
+              value={sinceDate}
+              max={new Date().toLocaleDateString('en-CA')}
+              aria-label="Created on or after"
+              onChange={(event) => { setSinceDate(event.target.value); setScope('since'); }}
+            />
+          </label>
+        </fieldset>
+        <div className="setting">
+          <div className="setting-text">
+            <label htmlFor="page-size">Page size</label>
+            <span>Products per request. Larger pages need fewer requests.</span>
+          </div>
+          <select id="page-size" value={pageSize} disabled={running} onChange={(event) => setPageSize(Number(event.target.value))}>
+            {PAGE_SIZES.map((size) => <option key={size} value={size}>{size} products</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="card-foot">
+        <div className="sync-actions">
+          <button type="button" className="primary" onClick={start} disabled={!canStart}>
+            {status === 'idle' ? 'Start sync' : 'Start new sync'}
+          </button>
+          {running && <button type="button" onClick={stop} disabled={stopping}>{stopping ? 'Stopping…' : 'Stop'}</button>}
+          {canResume && <button type="button" onClick={resume}>Resume from page {progress.page + 1}</button>}
+        </div>
+      </div>
+    </section>
+
+    {status !== 'idle' && <section className="card sync-progress" aria-label="Sync progress">
+      <div className="card-body">
+        <div className="progress-head">
+          <span className={`badge badge-${status}`}>{statusLabel(status)}</span>
+          <span className="progress-label">{activeSync.label}</span>
+          <span className="progress-pct">{percent}%</span>
+        </div>
+        <div
+          className={`bar bar-${status}`}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+          aria-label="Sync progress"
+        >
+          <span style={{ width: `${percent}%` }} />
+        </div>
+        <dl className="stats">
+          <div><dt>Processed</dt><dd>{count(progress.processed)} <span>of {count(progress.total)}</span></dd></div>
+          <div><dt>Sent to Algolia</dt><dd>{count(progress.synced)}</dd></div>
+          <div><dt>Pages done</dt><dd>{count(progress.page)}</dd></div>
+        </dl>
+        <p role="status" className="visually-hidden">
+          {statusLabel(status)} · {activeSync.label} · {progress.processed} of {progress.total} products processed ({percent}%)
+          {' '}· {progress.synced} sent to Algolia
+        </p>
+        {error && <div className="sync-error" role="alert">
+          <p>{error}</p>
+          {errorDetails != null && <details open>
+            <summary>Error details</summary>
+            <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
+          </details>}
+        </div>}
+      </div>
+    </section>}
+  </>;
+}
+
+function count(value: number) {
+  return value.toLocaleString();
+}
+
+// A picked day as the merchant reads it, e.g. Sep 1, 2026
+function formatDate(date: string) {
+  return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { dateStyle: 'medium' });
 }
 
 function statusLabel(status: Status) {
