@@ -27,8 +27,8 @@
     "typescript": "6.0.3",
     "vite": "8.3.0",
     "wrangler": "4.131.2",
-    "eslint": "10.10.0",
-    "typescript-eslint": "8.70.0"
+    "eslint": "10.15.0",
+    "typescript-eslint": "8.73.0"
   },
   "engines": {
     "node": ">=22.22.2"
