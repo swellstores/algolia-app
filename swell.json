@@ -1,5 +1,6 @@
 {
 	"description": "Index your Swell products in Algolia for fast storefront search",
+	"repository_url": "https://github.com/swellstores/algolia-app",
 	"id": "algolia",
 	"name": "Algolia",
 	"type": "integration",

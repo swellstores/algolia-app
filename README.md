@@ -220,3 +220,7 @@ On a local Swell platform (for example `dev3.swell.test`), the app frontend load
 
 - Keep `frontend/dist/`, `frontend/.wrangler/` and `*.tsbuildinfo` out of git: builds write local absolute paths into them. `swell app push` skips them and rebuilds the frontend.
 - The allowed page sizes are `PAGE_SIZES` and `DEFAULT_PAGE_SIZE` in `functions/lib/algolia.ts`. Keep the copy in `frontend/src/ProductSync.tsx` in step; the server rejects other values.
+
+## License
+
+MIT. See [LICENSE](LICENSE). Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
